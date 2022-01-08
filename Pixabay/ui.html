@@ -12,6 +12,7 @@
     position: fixed;
     top: 0;
     width: 100%;
+    padding-top: 3px;
     background-color: azure;
     height: 50px;
     z-index: 10;
@@ -46,20 +47,21 @@
     padding-top: 3px;
     width: 25%;
   }
-  img{
-    padding: 4px;
-    max-width: 20%;
-  }
-  .image-grid-container{
+  #image-flex-container{
     display: flex;
+    margin-top: 50px;
     justify-content: center;
-    width: 100%;
-    margin-top: 200px;
-    margin:auto;
   }
-  #img-grid{
-    justify-content: end;
+  .image-flex{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
   }
+  .image{
+    padding: 3px;
+    max-width: 100%;
+  }
+
 </style>
 
 <nav>
@@ -74,7 +76,7 @@
       type = "text"
       placeholder = "search"
       class = "search-bar"
-      onkeypress="searchImagesOnEnter"
+      onkeypress="searchImagesOnEnter()"
     />
     <select class = 'selection-options'>
         <option value ="all">All</option>
@@ -84,58 +86,95 @@
     </select>
   </div>
 </nav>
-<main class = 'image-grid-container'>
-  <div id = 'image-grid'></div>
+<main id = 'image-flex-container'>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/macy@2"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <script>
     const API_KEY = '17877062-a04b9c48cbd1252cbe29aff01';
-    console.log(API_KEY)
+    let previousSearch = '';
+    let previousType = 'photos'
     const searchButton = document.querySelector('.search-button');
     const input = document.querySelector('.search-bar');
     const imageType = document.querySelector('.selection-options');
-    const imageGridContainer = document.getElementById('image-grid');
+    const imageFlexContainer = document.getElementById('image-flex-container');
+    let numOfCont = 4;
+    let totalPages = 1;
+    let previousPage = 1;
 
-    //Creating masonry effect for grids
-    const imageGrid = Macy({
-      container: '#image-grid',
-      trueOrder: false,
-      waitForImages: false,
-      mobileFirst: true,
-      margin: {x:'100%', y: 5}
-    });
-
-    imageGrid.runOnImageLoad(function () {
-      imageGrid.recalculate(true);
-    }, true);
-
-
+    function generateFlexContainers(howManyConts = 4){
+        while (imageFlexContainer.firstChild) {
+            imageFlexContainer.removeChild(imageFlexContainer.firstChild);
+        }
+        for(let i = 0; i < howManyConts; i++){
+          const flexContainer = document.createElement('div');
+          flexContainer.className = 'image-flex';
+          imageFlexContainer.appendChild(flexContainer);
+        }
+        numOfCont = howManyConts;
+    }
+    function generateImages(urls){
+      let i = 0;
+      const imageFlex = document.getElementsByClassName('image-flex');
+      for(const img of urls){
+          const newImage = document.createElement('img');
+          newImage.className = 'image';
+          if(!img.previewURL)
+            continue;
+          newImage.src = img.previewURL
+          imageFlex[i].appendChild(newImage)
+          i++;
+          i %= numOfCont;
+          console.log(imageFlex[i]);
+        };
+    }
     async function fetchImages (page=1){
-      console.log('fetching');
         const search = input.value;
         const type = imageType.value;
-        console.log(type, search, 'type', 'search')
         const url = `https://pixabay.com/api/?key=${API_KEY}&q=${search}&image_type=${type}&per_page=70&page=${page}`
+        if(search === previousSearch && page === previousPage && type === previousType)
+          return;
         response = await fetch(url);
         if(!response.ok){
           console.log('error');
         }
         const json = await response.json();
-        console.log(json);
-        json.hits.map(img=>{
-          const newImage = document.createElement('img');
-          newImage.src = img.previewURL
-          document.getElementById('image-grid').appendChild(newImage)
-        });
+        let i = 0;
+        if(search === previousSearch)
+          generateImages(json.hits);
+        else{
+          generateFlexContainers(numOfCont);
+          generateImages(json.hits);
+        }
+        previousSearch = search;
+        previousType = type;
+        //previousPage = page;
     }
-    console.log(input.value, 'value');
     fetchImages();
 
     searchButton.addEventListener('click', ()=>fetchImages());
-
-    function searchImagesOnEnter(e, input){
-      if (e.code === "Enter" && !e.repeat){
+    input.addEventListener('keypress', searchImagesOnEnter);
+    function searchImagesOnEnter(e){
+      if (e?.code === "Enter"  || e?.key === "Enter" && !e?.repeat){
+        
         fetchImages();
       }
     }
