@@ -13,12 +13,10 @@ figma.ui.onmessage = msg => {
     const rect = figma.createRectangle();
     rect.fills = [
         { type: "SOLID", color: { r: 0, g: 0, b: 0 } },
-        { type: "IMAGE", scaleMode: "FILL",  imageHash:image.hash }
+        { type: "IMAGE", scaleMode: "FIT",  imageHash:image.hash }
       ]
     figma.currentPage.appendChild(rect);
     figma.currentPage.selection = [rect];
     figma.viewport.scrollAndZoomIntoView([rect]);
   }
-
-  figma.closePlugin();
 };
