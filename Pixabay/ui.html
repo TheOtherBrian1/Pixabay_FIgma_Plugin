@@ -1,0 +1,147 @@
+<style>
+  :root{
+    --border-color: rgb(202, 202, 202);
+    --border: .5px rgb(202, 202, 202) solid;
+  }
+  body{
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 10px;
+    margin: 0;
+  }
+  nav{
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: azure;
+    height: 50px;
+    z-index: 10;
+  }
+  .search{
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    width: 100%;
+  }
+  .search-bar{
+    border: none;
+    padding-top: 3px;
+    border-bottom: var(--border);
+    border-top: var(--border);
+    width: 60%;
+    padding-left: 10px;
+    font-weight: 500;
+  }
+  .search-bar:focus{
+    outline: none;
+    border-bottom-width: 1px;
+  }
+  .search-button{
+    border-radius: 0;
+    border: var(--border);
+    width: 15%;
+  }
+  .selection-options{
+    border: var(--border);
+    font-weight: 300;
+    padding-top: 3px;
+    width: 25%;
+  }
+  img{
+    padding: 4px;
+    max-width: 20%;
+  }
+  .image-grid-container{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 200px;
+    margin:auto;
+  }
+  #img-grid{
+    justify-content: end;
+  }
+</style>
+
+<nav>
+  <div class = "search">
+    <button
+      class = 'search-button'
+      type= "button">
+      🔎
+    </button>
+       
+    <input
+      type = "text"
+      placeholder = "search"
+      class = "search-bar"
+      onkeypress="searchImagesOnEnter"
+    />
+    <select class = 'selection-options'>
+        <option value ="all">All</option>
+        <option value = "photo">Photos</option>
+        <option value = 'vector'>Vectors</option>
+        <option value = 'illustration'>Illustrations</option>
+    </select>
+  </div>
+</nav>
+<main class = 'image-grid-container'>
+  <div id = 'image-grid'></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/macy@2"></script>
+
+<script>
+    const API_KEY = '17877062-a04b9c48cbd1252cbe29aff01';
+    console.log(API_KEY)
+    const searchButton = document.querySelector('.search-button');
+    const input = document.querySelector('.search-bar');
+    const imageType = document.querySelector('.selection-options');
+    const imageGridContainer = document.getElementById('image-grid');
+
+    //Creating masonry effect for grids
+    const imageGrid = Macy({
+      container: '#image-grid',
+      trueOrder: false,
+      waitForImages: false,
+      mobileFirst: true,
+      margin: {x:'100%', y: 5}
+    });
+
+    imageGrid.runOnImageLoad(function () {
+      imageGrid.recalculate(true);
+    }, true);
+
+
+    async function fetchImages (page=1){
+      console.log('fetching');
+        const search = input.value;
+        const type = imageType.value;
+        console.log(type, search, 'type', 'search')
+        const url = `https://pixabay.com/api/?key=${API_KEY}&q=${search}&image_type=${type}&per_page=70&page=${page}`
+        response = await fetch(url);
+        if(!response.ok){
+          console.log('error');
+        }
+        const json = await response.json();
+        console.log(json);
+        json.hits.map(img=>{
+          const newImage = document.createElement('img');
+          newImage.src = img.previewURL
+          document.getElementById('image-grid').appendChild(newImage)
+        });
+    }
+    console.log(input.value, 'value');
+    fetchImages();
+
+    searchButton.addEventListener('click', ()=>fetchImages());
+
+    function searchImagesOnEnter(e, input){
+      if (e.code === "Enter" && !e.repeat){
+        fetchImages();
+      }
+    }
+
+    // parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*')
+    // parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
+
+</script>
+

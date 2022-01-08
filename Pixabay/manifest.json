@@ -1,0 +1,10 @@
+{
+  "name": "Pixabay",
+  "id": "1061624104515827526",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": [
+    "figma"
+  ],
+  "ui": "ui.html"
+}
