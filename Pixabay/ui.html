@@ -2,18 +2,16 @@
   :root{
     --border-color: rgb(202, 202, 202);
     --border: .5px rgb(202, 202, 202) solid;
+    --font-size: 1.25rem;
   }
   body{
     font-family: Arial, Helvetica, sans-serif;
-    padding: 10px;
     margin: 0;
   }
   nav{
     position: fixed;
     top: 0;
     width: 100%;
-    padding-top: 3px;
-    background-color: azure;
     height: 50px;
     z-index: 10;
   }
@@ -22,6 +20,10 @@
     align-items: flex-end;
     justify-content: flex-start;
     width: 100%;
+    height: 30px;
+    padding-top: 5px;
+    background-color: #57b057;
+
   }
   .search-bar{
     border: none;
@@ -29,6 +31,7 @@
     border-bottom: var(--border);
     border-top: var(--border);
     width: 60%;
+    font-size: var(--font-size);
     padding-left: 10px;
     font-weight: 500;
   }
@@ -38,13 +41,16 @@
   }
   .search-button{
     border-radius: 0;
+    padding: .5px;
     border: var(--border);
     width: 15%;
+    font-size: var(--font-size)
   }
   .selection-options{
     border: var(--border);
     font-weight: 300;
-    padding-top: 3px;
+    font-size: var(--font-size);
+    padding-top: 3.5px;
     width: 25%;
   }
   #image-flex-container{
@@ -60,11 +66,19 @@
   .image{
     padding: 3px;
     max-width: 100%;
+    cursor: pointer;
+  }
+  .pixa-link{
+    background-color: #57b057;
+    width: 100%;
+    display: flex;
+    justify-content: center;
   }
 
 </style>
 
 <nav>
+  <a class = 'pixa-link' href = "https://pixabay.com"><img height = '50' src = 'https://pixabay.com/static/img/public/medium_rectangle_b.png' /></a>
   <div class = "search">
     <button
       class = 'search-button'
@@ -120,8 +134,22 @@
     let totalPages = 1;
     let previousPage = 1;
 
+    const imgCpy = async (e, pageURL)=>{
+            const res = await fetch(pageURL,{cache:"force-cache"} )
+            console.log(res);
+            if(res.ok){
+              const buffer = await res.arrayBuffer();
+              const uint8Array = new Uint8Array(buffer)
+              parent.postMessage({ pluginMessage: { type: 'getUrl', uint8Array} }, '*')
+            }
+            else{
+              console.log('could not convert to blob')
+            }
+    }
+    const wrapper = (pageURL) => (e)=> imgCpy(e, pageURL=pageURL)
     function generateFlexContainers(howManyConts = 4){
         while (imageFlexContainer.firstChild) {
+            imageFlexContainer.firstChild.removeEventListener('click',wrapper);
             imageFlexContainer.removeChild(imageFlexContainer.firstChild);
         }
         for(let i = 0; i < howManyConts; i++){
@@ -140,10 +168,10 @@
           if(!img.previewURL)
             continue;
           newImage.src = img.previewURL
+          newImage.addEventListener('click', wrapper(img.webformatURL))
           imageFlex[i].appendChild(newImage)
           i++;
           i %= numOfCont;
-          console.log(imageFlex[i]);
         };
     }
     async function fetchImages (page=1){
@@ -168,7 +196,6 @@
         previousType = type;
         //previousPage = page;
     }
-    fetchImages();
 
     searchButton.addEventListener('click', ()=>fetchImages());
     input.addEventListener('keypress', searchImagesOnEnter);
@@ -179,8 +206,8 @@
       }
     }
 
-    // parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*')
-    // parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
+    // 
+    // 
 
 </script>
 
